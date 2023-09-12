@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to ADIA - Select a Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center; /* Center the content */
+        }
+
+        h1 {
+            padding: 20px;
+            color: #4a4a4a;
+        }
+
+        h2 {
+            padding: 20px;
+            font-size: 24px;
+        }
+
+        p {
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        /* Style for search box and select */
+        input[type="text"], select {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+    <script>
+        function searchBooks() {
+            var input, filter, select, option, i;
+            input = document.getElementById("search_text");
+            filter = input.value.toUpperCase();
+            select = document.getElementById("book_select");
+            option = select.getElementsByTagName("option");
+
+            for (i = 0; i < option.length; i++) {
+                if (option[i].innerText.toUpperCase().indexOf(filter) > -1) {
+                    option[i].style.display = "";
+                } else {
+                    option[i].style.display = "none";
+                }
+            }
+
+            // Perform a search using AJAX when user starts typing
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/search_books', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var books = response.books;
+                    var select = document.getElementById("book_select");
+                    select.innerHTML = ""; // Clear existing options
+                    for (var i = 0; i < books.length; i++) {
+                        var option = document.createElement("option");
+                        option.value = books[i];
+                        option.textContent = books[i];
+                        select.appendChild(option);
+                    }
+                }
+            };
+            xhr.send('search_text=' + input.value);
+        }
+    </script>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Welcome to ADIA</h1>
+    <!-- Subheader -->
+    <h2>Select a Book</h2>
+
+    <form method="POST">
+        <input type="text" name="search_text" id="search_text" onkeyup="searchBooks()" placeholder="Type to search...">
+        <select name="book" id="book_select">
+            {% for book in books %}
+            <option value="{{ book }}">{{ book }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Select Book">
+    </form>
+</body>
+</html>

@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to AIDA - Select a Book</title>
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center; /* Center the content */
+        }
+
+        h1 {
+            padding: 20px;
+            color: #4a4a4a;
+        }
+
+        h2 {
+            padding: 20px;
+            font-size: 24px;
+        }
+
+        p {
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        /* Style for search box and select */
+        input[type="text"], select {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #c6f1e7; /* light color */
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 18px;
+            transition: background 0.2s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #a3d9cc; /* slightly darker color on hover */
+            cursor: pointer;
+        }
+        /* Style for the "book not found" option */
+        .book-not-found {
+            font-style: italic;
+            color: #aaa;
+        }
+        /* The switch - the box around the slider */
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        /* The slider */
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+          transform: translateX(26px);
+        }
+
+    </style>
+<script>
+    function searchBooks() {
+        var input = document.getElementById("search_text");
+        var select = document.getElementById("book_select");
+
+        // AJAX request
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/search_books', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                var books = response.books;
+                select.innerHTML = ""; // Clear existing options
+
+                if (books.length === 0) {
+                    // If no books are found, add the "no match found" option
+                    var option = document.createElement("option");
+                    option.value = "book_not_found";
+                    option.textContent = "(no book match)";
+                    option.className = "book-not-found";
+                    select.appendChild(option);
+                } else {
+                    for (var i = 0; i < books.length; i++) {
+                        var option = document.createElement("option");
+                        option.value = books[i];
+                        option.textContent = books[i];
+                        select.appendChild(option);
+                    }
+                }
+            }
+        };
+        xhr.send('search_text=' + input.value);
+    }
+
+    // Add this function to handle the "Book Not Found" option
+    function handleBookNotFound() {
+        var select = document.getElementById("book_select");
+        var optionValue = select.value;
+        if (optionValue === 'book_not_found') {
+            // Handle the case of "Book Not Found"
+            // Set the selected book to None or an empty string
+            select.value = '';
+        }
+    }
+</script>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Welcome to AIDA</h1>
+    <!-- Subheader -->
+    <h2 style="font-size: 30px;">Select a Book</h2>
+
+    <form method="POST">
+        <input type="text" name="search_text" id="search_text" onkeyup="searchBooks()" placeholder="Type to search...">
+        <select name="book" id="book_select">
+            <option value="book_not_found" class="book-not-found">(no book match)</option>
+            {% for book in books %}
+            <option value="{{ book }}">{{ book }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Have you read this book before? slider -->
+        <h2>Have you read this book before?</h2>
+        <span>No</span>
+        <label class="switch">
+          <input type="checkbox" id="readBefore" name="readBefore">
+          <span class="slider"></span>
+        </label>
+        <span>Yes</span>
+
+        <!-- Child's age dropdown -->
+        <h2>Please select the child's age:</h2>
+        <select id="childAge" name="childAge">
+          <option value="2">2 years or younger</option>
+          <option value="3">3 years old</option>
+          <option value="4">4 years old</option>
+          <option value="5">5 years old</option>
+          <option value="6">6 years or older</option>
+        </select>
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

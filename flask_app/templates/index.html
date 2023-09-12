@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AIDA - Your Artificially Intelligent Reading Pal</title>
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px;
+        }
+
+        .column {
+            flex: 1;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            color: #4a4a4a;
+        }
+        h2 {
+        text-align: center;
+    }
+
+        #toggle-button {
+            display: block;
+            width: 150px;
+            height: 50px;
+            margin: 20px auto;
+            background-color: #c6f1e7; /* light color */
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 18px;
+            transition: background 0.2s ease;
+        }
+
+        #toggle-button:hover {
+            background-color: #a3d9cc; /* slightly darker color on hover */
+            cursor: pointer;
+        }
+
+        #toggle-button.active {
+            background-color: #89bda3; /* darker color when pressed */
+        }
+
+        #popup {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 200px;
+            border: 1px solid #333;
+            background-color: #fff;
+            z-index: 1000;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .popup-content {
+            padding: 10px;
+        }
+
+        #popup-image {
+            width: 180px;
+            height: 200px;
+        }
+
+        #popup-message {
+            font-size: 20px;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .column {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* vertically center children */
+    }
+
+    </style>
+    <script type="text/javascript">
+        var gptSource = new EventSource("/gpt_updates");
+        gptSource.onmessage = function(event) {
+            document.getElementById("gpt-text").innerHTML = event.data;
+        };
+
+        var highlightSource = new EventSource("/highlight_updates");
+        highlightSource.onmessage = function(event) {
+            // Get data from flask
+            var data = JSON.parse(event.data);
+
+            // Display Full Book Text
+            document.getElementById("full-book-text").innerHTML = data.full_book_text;
+        };
+
+        function toggleVariable() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/toggle', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    console.log('Toggle success');
+                    // Change button color and text
+                    var button = document.getElementById("toggle-button");
+                    button.classList.toggle("active");
+                    if (button.innerHTML === "Start Reading!") {
+                        button.innerHTML = "Stop Reading!";
+                    } else {
+                        button.innerHTML = "Start Reading!";
+                    }
+                }
+            };
+            xhr.send()
+        }
+       // function showPopup() {
+       //     document.getElementById('popup').style.display = 'block';
+       // }
+
+        gptSource.onmessage = function(event) {
+            document.getElementById("gpt-text").innerHTML = event.data;
+            showPopup();
+        };
+        var popupSource = new EventSource("/popup_updates");
+        popupSource.onmessage = function(event) {
+            var popup = document.getElementById("popup");
+            var overlay = document.getElementById("overlay");
+            if (event.data === "Show") {
+                popup.style.display = "block";
+                overlay.style.display = "block";  // Show the overlay
+            } else if (event.data === "Hide") {
+                popup.style.display = "none";
+                overlay.style.display = "none";  // Hide the overlay
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1>AIDA - Your Artificially Intelligent Reading Pal</h1>
+    <button id="toggle-button" onclick="toggleVariable()">Start Reading!</button>
+
+    <div class="container">
+        <!-- Left Column for Selected Book -->
+        <div class="column">
+            <h2>Selected Book Text</h2>
+            <p id="full-book-text"></p>
+        </div>
+
+        <!-- Right Column for Generated Questions -->
+        <div class="column">
+            <h2>Generated Questions</h2>
+            <p id="gpt-text"></p>
+        </div>
+    </div>
+
+    <div id="overlay"></div>
+
+    <!-- Pop-up at the lower right -->
+    <div id="popup" style="display: none;">
+        <div class="popup-content">
+            <img id="popup-image" src="{{ url_for('static', filename='img/bookbear2.png') }}" alt="Cute Animal">
+            <p id="popup-message">I have a question for you!</p>
+        </div>
+    </div>
+</body>
+</html>
